@@ -18,10 +18,13 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to the TaskForge API!');
 });
 
-app.listen(PORT, async () => {
-  console.log(`TaskForge API is running on port ${PORT}`);
+// Connect to database
+connectDB();
 
-  await connectDB();
-})
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, async () => {
+    console.log(`TaskForge API is running on port ${PORT}`);
+  });
+}
 
 export default app;
