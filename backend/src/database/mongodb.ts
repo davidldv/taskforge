@@ -1,19 +1,24 @@
 import mongoose from 'mongoose';
 import { MONGO_URI, NODE_ENV } from '../config/env';
 
-if (!MONGO_URI) {
-  throw new Error('MONGO_URI is not defined in environment variables');
-}
-
 const connectDB = async () => {
-	try {
-		await mongoose.connect(MONGO_URI as string);
+  try {
+    if (mongoose.connection.readyState >= 1) {
+      return;
+    }
 
-		console.log(`MongoDB connected successfully in ${NODE_ENV} mode`);
-	} catch (error) {
-		console.error('Error connecting to MongoDB:', error);
-		process.exit(1);
-	}
+    if (!MONGO_URI) {
+      throw new Error('MONGO_URI is not defined in environment variables');
+    }
+
+    await mongoose.connect(MONGO_URI as string);
+
+    console.log(`MongoDB connected successfully in ${NODE_ENV} mode`);
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    // In serverless, we shouldn't exit the process, but let the request fail
+    throw error;
+  }
 }
 
 export default connectDB;

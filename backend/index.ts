@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
@@ -32,11 +33,16 @@ app.use('/api/v1/tasks', taskRouter);
 app.use(errorMiddleware);
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Welcome to the TaskForge API!');
+  res.json({
+    message: 'Welcome to the TaskForge API!',
+    status: 'running',
+    env: process.env.NODE_ENV,
+    dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
 });
 
 // Connect to database
-connectDB();
+connectDB().catch(err => console.error('Database connection error:', err));
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, async () => {
