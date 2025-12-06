@@ -25,15 +25,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const checkAuth = async () => {
       try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
+        const res = await apiFetch(`${AUTH_API_URL}/profile`);
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.data);
+        } else {
+          setUser(null);
+          localStorage.removeItem('user');
+        }
+      } catch (error) {
+        setUser(null);
         localStorage.removeItem('user');
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
   const signIn = async (credentials: any) => {

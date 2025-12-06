@@ -124,3 +124,16 @@ export const signOut = async (req: Request, res: Response, next: NextFunction) =
     next(error);
   }
 }
+
+export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = req.user;
+    
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+}

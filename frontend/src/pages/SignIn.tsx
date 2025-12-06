@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 
 const SignIn = () => {
@@ -14,9 +15,12 @@ const SignIn = () => {
     setError('');
     try {
       await signIn({ email, password });
+      toast.success('Welcome back!');
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      const msg = err.message || 'Failed to sign in';
+      setError(msg);
+      toast.error(msg);
     }
   };
 

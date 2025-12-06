@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { apiFetch, TASKS_API_URL } from '../lib/api';
-import { useAuth } from '../context/AuthContext';
+import { Layout } from '../components/Layout';
+import { TaskCard } from '../components/tasks/TaskCard';
+import { TaskForm } from '../components/tasks/TaskForm';
+import { Modal } from '../components/ui/Modal';
+import { Button } from '../components/ui/Button';
+import { Spinner } from '../components/ui/Spinner';
 
 interface Task {
   _id: string;
@@ -10,12 +16,14 @@ interface Task {
 }
 
 export const Home = () => {
-  const { user, signOut } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchTasks = async () => {
     try {
@@ -25,9 +33,11 @@ export const Home = () => {
         setTasks(data.data);
       } else {
         setError(data.message || 'Failed to fetch tasks');
+        toast.error('Failed to fetch tasks');
       }
     } catch (err) {
       setError('An error occurred while fetching tasks');
+      toast.error('An error occurred while fetching tasks');
     } finally {
       setLoading(false);
     }
@@ -37,37 +47,63 @@ export const Home = () => {
     fetchTasks();
   }, []);
 
-  const handleCreateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-
+  const handleCreateTask = async (data: { title: string; description: string }) => {
+    setIsSubmitting(true);
     try {
       const res = await apiFetch(TASKS_API_URL, {
         method: 'POST',
-        body: JSON.stringify({ title, description }),
+        body: JSON.stringify(data),
       });
-      const data = await res.json();
+      const responseData = await res.json();
       if (res.ok) {
-        setTasks([data.data, ...tasks]);
-        setTitle('');
-        setDescription('');
+        setTasks([responseData.data, ...tasks]);
+        setIsCreateModalOpen(false);
+        toast.success('Task created successfully');
+      } else {
+        toast.error(responseData.message || 'Failed to create task');
       }
     } catch (err) {
-      console.error('Failed to create task', err);
+      toast.error('Failed to create task');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateTask = async (data: { title: string; description: string }) => {
+    if (!editingTask) return;
+    setIsSubmitting(true);
+    try {
+      const res = await apiFetch(`${TASKS_API_URL}/${editingTask._id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        setTasks(tasks.map(t => t._id === editingTask._id ? { ...t, ...data } : t));
+        setEditingTask(null);
+        toast.success('Task updated successfully');
+      } else {
+        toast.error('Failed to update task');
+      }
+    } catch (err) {
+      toast.error('Failed to update task');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleToggleTask = async (id: string, completed: boolean) => {
+    // Optimistic update
+    setTasks(tasks.map(t => t._id === id ? { ...t, completed: !completed } : t));
+    
     try {
-      const res = await apiFetch(`${TASKS_API_URL}/${id}`, {
+      await apiFetch(`${TASKS_API_URL}/${id}`, {
         method: 'PUT',
         body: JSON.stringify({ completed: !completed }),
       });
-      if (res.ok) {
-        setTasks(tasks.map(t => t._id === id ? { ...t, completed: !completed } : t));
-      }
     } catch (err) {
-      console.error('Failed to update task', err);
+      // Revert on error
+      setTasks(tasks.map(t => t._id === id ? { ...t, completed } : t));
+      toast.error('Failed to update task status');
     }
   };
 
@@ -79,108 +115,89 @@ export const Home = () => {
       });
       if (res.ok) {
         setTasks(tasks.filter(t => t._id !== id));
+        toast.success('Task deleted successfully');
+      } else {
+        toast.error('Failed to delete task');
       }
     } catch (err) {
-      console.error('Failed to delete task', err);
+      toast.error('Failed to delete task');
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Loading tasks...</div>;
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <Spinner />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">TaskForge</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-400 capitalize">Welcome, {user?.name}</span>
-            <button
-              onClick={signOut}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm font-medium transition-colors"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-
-        {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded mb-6">
-            {error}
-          </div>
-        )}
-
-        <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-lg">
-          <h2 className="text-xl font-semibold mb-4">Create New Task</h2>
-          <form onSubmit={handleCreateTask} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                placeholder="Task title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-gray-700 border-gray-600 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <textarea
-                placeholder="Description (optional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-gray-700 border-gray-600 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
-            >
-              Add Task
-            </button>
-          </form>
-        </div>
-
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold mb-4">Your Tasks</h2>
-          {tasks.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No tasks yet. Create one above!</p>
-          ) : (
-            tasks.map((task) => (
-              <div
-                key={task._id}
-                className={`bg-gray-800 p-4 rounded-lg shadow flex items-start justify-between group transition-all ${
-                  task.completed ? 'opacity-75' : ''
-                }`}
-              >
-                <div className="flex items-start gap-4 flex-1">
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() => handleToggleTask(task._id, task.completed)}
-                    className="mt-1.5 w-5 h-5 rounded border-gray-600 text-blue-600 focus:ring-blue-500 bg-gray-700 cursor-pointer"
-                  />
-                  <div>
-                    <h3 className={`font-medium text-lg ${task.completed ? 'line-through text-gray-500' : 'text-white'}`}>
-                      {task.title}
-                    </h3>
-                    {task.description && (
-                      <p className={`text-gray-400 mt-1 ${task.completed ? 'line-through' : ''}`}>
-                        {task.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDeleteTask(task._id)}
-                  className="text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1"
-                  title="Delete task"
-                >
-                  Delete
-                </button>
-              </div>
-            ))
-          )}
-        </div>
+    <Layout>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-white">My Tasks</h2>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          + New Task
+        </Button>
       </div>
-    </div>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded mb-6">
+          {error}
+        </div>
+      )}
+
+      {tasks.length === 0 ? (
+        <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700 border-dashed">
+          <p className="text-gray-400 mb-4">You don't have any tasks yet.</p>
+          <Button variant="secondary" onClick={() => setIsCreateModalOpen(true)}>
+            Create your first task
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {tasks.map((task) => (
+            <TaskCard
+              key={task._id}
+              task={task}
+              onToggle={handleToggleTask}
+              onDelete={handleDeleteTask}
+              onEdit={setEditingTask}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Create Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Create New Task"
+      >
+        <TaskForm
+          onSubmit={handleCreateTask}
+          onCancel={() => setIsCreateModalOpen(false)}
+          isLoading={isSubmitting}
+          submitLabel="Create Task"
+        />
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        title="Edit Task"
+      >
+        <TaskForm
+          initialData={editingTask ? { title: editingTask.title, description: editingTask.description || '' } : undefined}
+          onSubmit={handleUpdateTask}
+          onCancel={() => setEditingTask(null)}
+          isLoading={isSubmitting}
+          submitLabel="Save Changes"
+        />
+      </Modal>
+    </Layout>
   );
 };
