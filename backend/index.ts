@@ -48,7 +48,8 @@ app.get('/', (req: Request, res: Response) => {
     message: 'Welcome to the TaskForge API!',
     status: 'running',
     env: process.env.NODE_ENV,
-    dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    readyState: mongoose.connection.readyState
   });
 });
 
