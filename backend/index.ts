@@ -9,6 +9,7 @@ import authRouter from './src/routes/auth.routes';
 import taskRouter from './src/routes/task.routes';
 import connectDB from './src/database/mongodb';
 import errorMiddleware from './src/middlewares/error.middleware';
+import { env } from 'process';
  
 const app = express();
 
@@ -45,11 +46,10 @@ app.use(errorMiddleware);
 
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    message: 'Welcome to the TaskForge API!',
-    status: 'running',
-    env: process.env.NODE_ENV,
-    dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    readyState: mongoose.connection.readyState
+     message: 'Welcome to the TaskForge API!', 
+     status: 'running',
+     env: env.NODE_ENV || 'production',
+     dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
