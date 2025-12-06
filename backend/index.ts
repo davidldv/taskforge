@@ -27,6 +27,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Middleware to ensure DB connection
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
+
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/tasks', taskRouter);
 
@@ -41,10 +52,9 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Connect to database
-connectDB().catch(err => console.error('Database connection error:', err));
-
+// Connect to database (optional here as middleware handles it, but good for local dev)
 if (process.env.NODE_ENV !== 'production') {
+  connectDB().catch(err => console.error('Database connection error:', err));
   app.listen(PORT, async () => {
     console.log(`TaskForge API is running on port ${PORT}`);
   });
