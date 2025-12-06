@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 import { PORT } from './src/config/env';
 
@@ -9,6 +10,17 @@ import connectDB from './src/database/mongodb';
 import errorMiddleware from './src/middlewares/error.middleware';
  
 const app = express();
+
+app.use(cors({
+  origin: [
+    'http://localhost:5173', 
+    'https://taskforge-front.vercel.app',
+    process.env.FRONTEND_URL
+  ].filter(Boolean) as string[],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
