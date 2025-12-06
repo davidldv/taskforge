@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Home } from './pages/Home';
+import { Landing } from './pages/Landing';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 
@@ -12,7 +13,8 @@ const App = () => {
       <AuthProvider>
         <Toaster position="top-right" theme="dark" />
         <Routes>
-          <Route path="/" element={
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <Home />
             </ProtectedRoute>

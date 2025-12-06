@@ -21,7 +21,7 @@ const SignIn = () => {
     try {
       await signIn({ email, password });
       toast.success('Welcome back!');
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       const msg = err.message || 'Failed to sign in';
       setError(msg);

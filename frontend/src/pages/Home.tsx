@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { apiFetch, TASKS_API_URL } from '../lib/api';
 import { Layout } from '../components/Layout';
@@ -16,6 +17,7 @@ interface Task {
 }
 
 export const Home = () => {
+  const { t } = useTranslation();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,7 @@ export const Home = () => {
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchTasks = async () => {
@@ -32,12 +35,12 @@ export const Home = () => {
       if (res.ok) {
         setTasks(data.data);
       } else {
-        setError(data.message || 'Failed to fetch tasks');
-        toast.error('Failed to fetch tasks');
+        setError(data.message || t('dashboard.messages.fetch_error'));
+        toast.error(t('dashboard.messages.fetch_error'));
       }
     } catch (err) {
-      setError('An error occurred while fetching tasks');
-      toast.error('An error occurred while fetching tasks');
+      setError(t('dashboard.messages.fetch_error_generic'));
+      toast.error(t('dashboard.messages.fetch_error_generic'));
     } finally {
       setLoading(false);
     }
@@ -58,12 +61,12 @@ export const Home = () => {
       if (res.ok) {
         setTasks([responseData.data, ...tasks]);
         setIsCreateModalOpen(false);
-        toast.success('Task created successfully');
+        toast.success(t('dashboard.messages.create_success'));
       } else {
-        toast.error(responseData.message || 'Failed to create task');
+        toast.error(responseData.message || t('dashboard.messages.create_error'));
       }
     } catch (err) {
-      toast.error('Failed to create task');
+      toast.error(t('dashboard.messages.create_error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -80,12 +83,12 @@ export const Home = () => {
       if (res.ok) {
         setTasks(tasks.map(t => t._id === editingTask._id ? { ...t, ...data } : t));
         setEditingTask(null);
-        toast.success('Task updated successfully');
+        toast.success(t('dashboard.messages.update_success'));
       } else {
-        toast.error('Failed to update task');
+        toast.error(t('dashboard.messages.update_error'));
       }
     } catch (err) {
-      toast.error('Failed to update task');
+      toast.error(t('dashboard.messages.update_error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -103,24 +106,30 @@ export const Home = () => {
     } catch (err) {
       // Revert on error
       setTasks(tasks.map(t => t._id === id ? { ...t, completed } : t));
-      toast.error('Failed to update task status');
+      toast.error(t('dashboard.messages.status_error'));
     }
   };
 
   const handleDeleteTask = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this task?')) return;
+    const task = tasks.find(t => t._id === id);
+    if (task) setDeletingTask(task);
+  };
+
+  const confirmDeleteTask = async () => {
+    if (!deletingTask) return;
     try {
-      const res = await apiFetch(`${TASKS_API_URL}/${id}`, {
+      const res = await apiFetch(`${TASKS_API_URL}/${deletingTask._id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setTasks(tasks.filter(t => t._id !== id));
-        toast.success('Task deleted successfully');
+        setTasks(tasks.filter(t => t._id !== deletingTask._id));
+        toast.success(t('dashboard.messages.delete_success'));
+        setDeletingTask(null);
       } else {
-        toast.error('Failed to delete task');
+        toast.error(t('dashboard.messages.delete_error'));
       }
     } catch (err) {
-      toast.error('Failed to delete task');
+      toast.error(t('dashboard.messages.delete_error'));
     }
   };
 
@@ -139,11 +148,11 @@ export const Home = () => {
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-white tracking-tight">My Tasks</h2>
-            <p className="text-gray-400 mt-1">Manage your daily goals and projects</p>
+            <h2 className="text-3xl font-bold text-white tracking-tight">{t('dashboard.my_tasks')}</h2>
+            <p className="text-gray-400 mt-1">{t('dashboard.manage_tasks')}</p>
           </div>
           <Button onClick={() => setIsCreateModalOpen(true)} className="shadow-lg shadow-brand-500/20">
-            <span className="mr-2 text-lg">+</span> New Task
+            <span className="mr-2 text-lg">+</span> {t('dashboard.new_task')}
           </Button>
         </div>
 
@@ -163,12 +172,12 @@ export const Home = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">No tasks yet</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">{t('dashboard.no_tasks')}</h3>
             <p className="text-gray-400 mb-8 max-w-md mx-auto">
-              You haven't created any tasks yet. Start by adding a new task to organize your day.
+              {t('dashboard.create_first_task')}
             </p>
             <Button onClick={() => setIsCreateModalOpen(true)} variant="secondary">
-              Create your first task
+              {t('dashboard.create_task')}
             </Button>
           </div>
         ) : (
@@ -189,13 +198,13 @@ export const Home = () => {
         <Modal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          title="Create New Task"
+          title={t('dashboard.create_new_task')}
         >
           <TaskForm
             onSubmit={handleCreateTask}
             onCancel={() => setIsCreateModalOpen(false)}
             isLoading={isSubmitting}
-            submitLabel="Create Task"
+            submitLabel={t('dashboard.create_task')}
           />
         </Modal>
 
@@ -203,15 +212,36 @@ export const Home = () => {
         <Modal
           isOpen={!!editingTask}
           onClose={() => setEditingTask(null)}
-          title="Edit Task"
+          title={t('dashboard.edit_task')}
         >
           <TaskForm
             initialData={editingTask ? { title: editingTask.title, description: editingTask.description || '' } : undefined}
             onSubmit={handleUpdateTask}
             onCancel={() => setEditingTask(null)}
             isLoading={isSubmitting}
-            submitLabel="Save Changes"
+            submitLabel={t('dashboard.save_changes')}
           />
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={!!deletingTask}
+          onClose={() => setDeletingTask(null)}
+          title={t('dashboard.delete_task_title')}
+        >
+          <div className="space-y-4">
+            <p className="text-gray-300">
+              {t('dashboard.confirm_delete')}
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setDeletingTask(null)}>
+                {t('dashboard.cancel')}
+              </Button>
+              <Button variant="danger" onClick={confirmDeleteTask}>
+                {t('dashboard.delete')}
+              </Button>
+            </div>
+          </div>
         </Modal>
       </div>
     </Layout>
