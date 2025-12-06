@@ -6,7 +6,7 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
     const { title, description } = req.body;
 
     const task = await Task.create({
-      user: req.user._id,
+      user: req.user!._id,
       title,
       description
     });
@@ -22,7 +22,7 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
 
 export const getTasks = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const tasks = await Task.find({ user: req.user!._id }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -38,7 +38,7 @@ export const getTask = async (req: Request, res: Response, next: NextFunction) =
   try {
     const { id } = req.params;
 
-    const task = await Task.findOne({ _id: id, user: req.user._id });
+    const task = await Task.findOne({ _id: id, user: req.user!._id });
 
     if (!task) {
       const error = new Error('Task not found');
@@ -61,7 +61,7 @@ export const updateTask = async (req: Request, res: Response, next: NextFunction
     const { title, description, completed } = req.body;
 
     const task = await Task.findOneAndUpdate(
-      { _id: id, user: req.user._id },
+      { _id: id, user: req.user!._id },
       { title, description, completed },
       { new: true, runValidators: true }
     );
@@ -85,7 +85,7 @@ export const deleteTask = async (req: Request, res: Response, next: NextFunction
   try {
     const { id } = req.params;
 
-    const task = await Task.findOneAndDelete({ _id: id, user: req.user._id });
+    const task = await Task.findOneAndDelete({ _id: id, user: req.user!._id });
 
     if (!task) {
       const error = new Error('Task not found');

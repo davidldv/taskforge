@@ -1,9 +1,10 @@
 import { Request } from 'express';
+import { Types } from 'mongoose';
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: any;
+    interface User {
+      _id: Types.ObjectId;
     }
   }
 }
