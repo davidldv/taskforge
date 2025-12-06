@@ -21,8 +21,20 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: [false, 'Password is required'], // Not required for OAuth users
     minLength: [6, 'Password must be at least 6 characters long'],
+    select: false,
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    select: false,
+  },
+  githubId: {
+    type: String,
+    unique: true,
+    sparse: true,
     select: false,
   },
 }, { timestamps: true });

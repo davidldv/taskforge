@@ -6,18 +6,34 @@ export const Layout = ({ children }: { children: ReactNode }) => {
   const { user, signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-dark-900/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-blue-500">TaskForge</h1>
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 rounded-lg bg-brand-500/10 border border-brand-500/20">
+                <img src="/logo.svg" alt="TaskForge" className="w-6 h-6" />
+              </div>
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-white/80">
+                TaskForge
+              </h1>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-400 text-sm hidden sm:block">
-                Welcome, <span className="text-white font-medium capitalize">{user?.name}</span>
-              </span>
-              <Button variant="secondary" onClick={signOut} className="text-sm">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <div className="hidden sm:flex items-center gap-3">
+                <div className="flex flex-col items-end">
+                  <span className="text-xs text-slate-400 font-medium">Welcome back</span>
+                  <span className="text-sm text-slate-200 font-semibold capitalize">{user?.name}</span>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold shadow-lg shadow-brand-500/20 border border-white/10">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              <div className="h-8 w-px bg-white/10 hidden sm:block"></div>
+              <Button 
+                variant="ghost" 
+                onClick={signOut} 
+                className="text-sm text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer"
+              >
                 Sign Out
               </Button>
             </div>

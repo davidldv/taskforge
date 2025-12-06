@@ -2,8 +2,10 @@ import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import passport from 'passport';
 
 import { PORT } from './src/config/env';
+import './src/config/passport';
 
 import authRouter from './src/routes/auth.routes';
 import taskRouter from './src/routes/task.routes';
@@ -27,6 +29,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(passport.initialize());
 
 // Middleware to ensure DB connection
 app.use(async (req, res, next) => {

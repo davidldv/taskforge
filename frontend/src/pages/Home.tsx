@@ -127,7 +127,7 @@ export const Home = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center h-[60vh]">
           <Spinner />
         </div>
       </Layout>
@@ -136,68 +136,84 @@ export const Home = () => {
 
   return (
     <Layout>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">My Tasks</h2>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          + New Task
-        </Button>
-      </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded mb-6">
-          {error}
-        </div>
-      )}
-
-      {tasks.length === 0 ? (
-        <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700 border-dashed">
-          <p className="text-gray-400 mb-4">You don't have any tasks yet.</p>
-          <Button variant="secondary" onClick={() => setIsCreateModalOpen(true)}>
-            Create your first task
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-white tracking-tight">My Tasks</h2>
+            <p className="text-gray-400 mt-1">Manage your daily goals and projects</p>
+          </div>
+          <Button onClick={() => setIsCreateModalOpen(true)} className="shadow-lg shadow-brand-500/20">
+            <span className="mr-2 text-lg">+</span> New Task
           </Button>
         </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {tasks.map((task) => (
-            <TaskCard
-              key={task._id}
-              task={task}
-              onToggle={handleToggleTask}
-              onDelete={handleDeleteTask}
-              onEdit={setEditingTask}
-            />
-          ))}
-        </div>
-      )}
 
-      {/* Create Modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Create New Task"
-      >
-        <TaskForm
-          onSubmit={handleCreateTask}
-          onCancel={() => setIsCreateModalOpen(false)}
-          isLoading={isSubmitting}
-          submitLabel="Create Task"
-        />
-      </Modal>
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl flex items-center gap-3">
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {error}
+          </div>
+        )}
 
-      {/* Edit Modal */}
-      <Modal
-        isOpen={!!editingTask}
-        onClose={() => setEditingTask(null)}
-        title="Edit Task"
-      >
-        <TaskForm
-          initialData={editingTask ? { title: editingTask.title, description: editingTask.description || '' } : undefined}
-          onSubmit={handleUpdateTask}
-          onCancel={() => setEditingTask(null)}
-          isLoading={isSubmitting}
-          submitLabel="Save Changes"
-        />
-      </Modal>
+        {tasks.length === 0 ? (
+          <div className="glass-panel rounded-2xl p-12 text-center border-dashed border-2 border-white/10">
+            <div className="w-20 h-20 bg-brand-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">No tasks yet</h3>
+            <p className="text-gray-400 mb-8 max-w-md mx-auto">
+              You haven't created any tasks yet. Start by adding a new task to organize your day.
+            </p>
+            <Button onClick={() => setIsCreateModalOpen(true)} variant="secondary">
+              Create your first task
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {tasks.map((task) => (
+              <TaskCard
+                key={task._id}
+                task={task}
+                onToggle={handleToggleTask}
+                onDelete={handleDeleteTask}
+                onEdit={setEditingTask}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Create Modal */}
+        <Modal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          title="Create New Task"
+        >
+          <TaskForm
+            onSubmit={handleCreateTask}
+            onCancel={() => setIsCreateModalOpen(false)}
+            isLoading={isSubmitting}
+            submitLabel="Create Task"
+          />
+        </Modal>
+
+        {/* Edit Modal */}
+        <Modal
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          title="Edit Task"
+        >
+          <TaskForm
+            initialData={editingTask ? { title: editingTask.title, description: editingTask.description || '' } : undefined}
+            onSubmit={handleUpdateTask}
+            onCancel={() => setEditingTask(null)}
+            isLoading={isSubmitting}
+            submitLabel="Save Changes"
+          />
+        </Modal>
+      </div>
     </Layout>
   );
 };

@@ -38,7 +38,7 @@ export const TaskForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <Input
         label="Title"
         value={title}
@@ -46,16 +46,17 @@ export const TaskForm = ({
         placeholder="What needs to be done?"
         required
         autoFocus
+        className="bg-dark-900/50"
       />
       <div>
-        <label className="block text-sm font-medium text-gray-400 mb-1">
+        <label className="block text-sm font-medium text-gray-400 mb-1.5">
           Description
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add details (optional)"
-          className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-24 resize-none"
+          className="w-full input-field rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none h-32 resize-none"
         />
       </div>
       <div className="flex justify-end gap-3 pt-2">

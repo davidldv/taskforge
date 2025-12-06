@@ -143,3 +143,26 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
     next(error);
   }
 }
+
+
+export const socialAuthCallback = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = req.user as any;
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET as string, {
+      expiresIn: JWT_EXPIRES_IN as any
+    });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
+    // Redirect to frontend
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(frontendUrl);
+  } catch (error) {
+    next(error);
+  }
+}
