@@ -6,6 +6,7 @@ import { PORT } from './src/config/env';
 import authRouter from './src/routes/auth.routes';
 import taskRouter from './src/routes/task.routes';
 import connectDB from './src/database/mongodb';
+import errorMiddleware from './src/middlewares/error.middleware';
  
 const app = express();
 
@@ -15,6 +16,8 @@ app.use(cookieParser());
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/tasks', taskRouter);
+
+app.use(errorMiddleware);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to the TaskForge API!');

@@ -6,7 +6,7 @@ const errorMiddleware = (err: any, req: Request, res: Response, next: NextFuncti
     error.message = err.message;
 
     // Log to console for development
-    console.error(err.stack.red);
+    console.error(err);
 
     // Mongoose bad ObjectId
     if (err.name === 'CastError') {
