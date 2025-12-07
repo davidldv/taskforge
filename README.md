@@ -19,20 +19,20 @@ TaskForge follows a clean client-server architecture, separating concerns for sc
 
 ```mermaid
 graph TD
-    User[User Client] -->|HTTPS| Frontend[Frontend (React + Vite)]
-    Frontend -->|REST API| Backend[Backend (Express + Bun)]
-    Backend -->|Auth Middleware| Controller[Controllers]
-    Controller -->|Mongoose| DB[(MongoDB)]
+    User["User Client"] -->|HTTPS| Frontend["Frontend (React + Vite)"]
+    Frontend -->|REST API| Backend["Backend (Express + Bun)"]
+    Backend -->|Auth Middleware| Controller["Controllers"]
+    Controller -->|Mongoose| DB[("MongoDB")]
     
     subgraph "Frontend Layer"
         Frontend
-        Context[Auth Context]
-        i18n[i18n Engine]
+        Context["Auth Context"]
+        i18n["i18n Engine"]
     end
     
     subgraph "Backend Layer"
         Backend
-        Auth[JWT Auth]
+        Auth["JWT Auth"]
     end
 ```
 
